@@ -1,0 +1,78 @@
+To run the above Sqoop command for each table in the "retail" database, you can write a Unix script that retrieves the list of tables from the database 
+and loops through each table, running the Sqoop command for that table. 
+
+#!/bin/bash
+
+# Set the database connection parameters
+DB_HOST="<database_host>"
+DB_NAME="retail"
+DB_USER="<username>"
+DB_PASSWORD="<password>"
+
+# Set the Sqoop command options
+SQOOP_OPTIONS="--connect jdbc:mysql://${DB_HOST}/${DB_NAME} \
+    --username ${DB_USER} \
+    --password ${DB_PASSWORD} \
+    --hive-import \
+    --hive-overwrite \
+    --create-hive-table \
+    --hive-drop-import-delims \
+    --incremental lastmodified \
+    --as-ORCFile \
+    --delete-target-dir \
+    --num-mappers 5 \
+    --compress \
+    --compression-codec org.apache.hadoop.io.compress.SnappyCodec \
+    --direct \
+    --outdir /tmp \
+    --bindir /tmp \
+    --exclude-tables item,product"
+
+# Get the list of tables from the database
+TABLES=$(mysql -h ${DB_HOST} -u ${DB_USER} -p${DB_PASSWORD} -N -e "SHOW TABLES FROM ${DB_NAME}" | grep -v -e "^item$" -e "^product$")
+
+# Loop through each table and run the Sqoop command
+for TABLE in $TABLES
+do
+    echo "Importing data for table $TABLE"
+    sqoop job --create "import_${TABLE}" --table $TABLE --hive-table "hive_${TABLE}" --check-column "last_modified" --merge-key "id" --split-by "id" $SQOOP_OPTIONS
+done
+
+
+
+In this script, replace the following placeholders:
+
+<database_host> with the hostname or IP address of the MySQL database server.
+<username> with the username to connect to the database.
+<password> with the password to connect to the database.
+The script uses the mysql command to retrieve the list of tables from the "retail" database,
+excluding the item and product tables. It then loops through each table and runs the Sqoop command using the table name and other options.
+The command creates a Sqoop job named import_<table_name> and a Hive table named hive_<table_name>, 
+where <table_name> is the name of the current table being processed. The last_modified column is used as the check column for incremental loading, 
+and id is used as the merge key and split column. The other options are the same as in the previous command.
+
+This script can be scheduled to run at a specific time interval using cron or 
+another scheduling tool to automate the incremental loading of data from all tables in the "retail" database to Hive tables.
+
+Note that the script assumes that the Hive tables do not exist before running the Sqoop command. 
+If you want to update existing Hive tables, you need to modify the command options as below.
+
+sqoop import \
+--connect jdbc:mysql://<database_host>/retail \
+--username <username> \
+--password <password> \
+--table <table_name> \
+--check-column last_modified \
+--incremental lastmodified \
+--merge-key id \
+--split-by id \
+--as-ORCFile \
+--delete-target-dir \
+--num-mappers 5 \
+--compress \
+--compression-codec org.apache.hadoop.io.compress.SnappyCodec \
+--direct \
+--hive-import \
+--hive-overwrite \
+--hive-table <hive_table_name> \
+--exclude-tables item,product
