@@ -1,0 +1,41 @@
+sqoop job \
+--create retail_incremental_load \
+-- import \
+--connect jdbc:mysql://<database_host>/<database_name> \
+--username <username> \
+--password <password> \
+--table <table_name> \
+--hive-import \
+--hive-overwrite \
+--hive-table <hive_table_name> \
+--create-hive-table \
+--hive-drop-import-delims \
+--incremental lastmodified \
+--check-column <lastmodified_column_name> \
+--merge-key <merge_key_column_name> \
+--split-by <split_column_name> \
+--as-ORCFile \
+--delete-target-dir \
+--num-mappers 5 \
+--compress \
+--compression-codec org.apache.hadoop.io.compress.SnappyCodec \
+--direct \
+--outdir <output_directory> \
+--bindir <output_directory> \
+--exclude-tables item,product
+
+
+This command performs the following actions:
+
+Creates a Sqoop job named retail_incremental_load.
+Imports data from the "retail" database to Hive tables.
+Uses the lastmodified incremental mode to import only new or updated rows based on the last modified time.
+Excludes the item and product tables from the import.
+Overwrites any existing data in the Hive table with the imported data.
+Creates the Hive table if it does not exist.
+Drops any delimiters used during the import process.
+Deletes the target directory before importing data to avoid duplicates.
+Uses 5 mappers to import the data efficiently.
+Compresses the imported data using Snappy codec to save storage space.
+Directly imports the data from the database to the Hive tables to avoid unnecessary intermediate steps.
+
