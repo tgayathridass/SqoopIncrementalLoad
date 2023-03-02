@@ -1,5 +1,5 @@
 # SqoopIncrementalLoad
-A real time example to perform Incremental load.
+A simple real time example to perform Incremental load.
 
 
 To create a Sqoop job that performs an incremental load for all tables from the "retail" database except "item" and "product" tables and saves them in ORC format to Hive table using last modified time as the check column, with no duplicates after each incremental load, updates rows in Hive tables if there are any changes in the source table, and reflects any inserts or deletions made in the source table in the Hive tables.
