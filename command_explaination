@@ -1,0 +1,13 @@
+This command performs the following actions:
+
+Creates a Sqoop job named retail_incremental_load.
+Imports data from the "retail" database to Hive tables.
+Uses the lastmodified incremental mode to import only new or updated rows based on the last modified time.
+Excludes the item and product tables from the import.
+Overwrites any existing data in the Hive table with the imported data.
+Creates the Hive table if it does not exist.
+Drops any delimiters used during the import process.
+Deletes the target directory before importing data to avoid duplicates.
+Uses 5 mappers to import the data efficiently.
+Compresses the imported data using Snappy codec to save storage space.
+Directly imports the data from the database to the Hive tables to avoid unnecessary intermediate steps.
